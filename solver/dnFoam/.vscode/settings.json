@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "mpFoam.C": "cpp",
+        "phaseChangeReaction.C": "cpp",
+        "ostream": "cpp",
+        "cmath": "cpp",
+        "complex": "cpp",
+        "optional": "cpp",
+        "system_error": "cpp",
+        "string": "cpp"
+    }
+}
