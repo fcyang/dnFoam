@@ -39,3 +39,4 @@ linux64Cray*/
 .idea
 CMakeLists.txt
 cmake-build-debug
+.vscode
