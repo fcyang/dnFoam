@@ -24,7 +24,7 @@ License
     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 
 Application
-    interFoam
+    dnFoam
 
 Group
     grpMultiphaseSolvers
@@ -33,7 +33,8 @@ Description
     Solver for two incompressible, isothermal immiscible fluids using a VOF
     (volume of fluid) phase-fraction based interface capturing approach,
     with optional mesh motion and mesh topology changes including adaptive
-    re-meshing.
+    re-meshing. Additional transport of species and nucleation functions
+    implemented as well.
 
 \*---------------------------------------------------------------------------*/
 
