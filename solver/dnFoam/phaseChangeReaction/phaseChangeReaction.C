@@ -663,7 +663,7 @@ void Foam::phaseChangeReaction::nuSiteCal
     );
     volScalarField& faceAreaTmpRef = faceAreaTmp.ref();
 
-    //Calculate the possibilities for nucleation
+    //Calculate the possibilities for heterogeneous nucleation
     tmp<volScalarField> nuRate = nuRateCal();
     nuRateOut = nuRate.ref();
     Info<< "Max/Min nucleation rate(n/m2/s): " << max(nuRate.ref()).value() << ", " << min(nuRate.ref()).value()<< endl;
@@ -701,6 +701,7 @@ void Foam::phaseChangeReaction::nuSiteCal
     dimensionedScalar nuRateAccum(0.0);
     dimensionedScalar averNuRate(0.0);
 
+    // iterate through wallList to generate heterogeneous nucleation
     forAll(wallList, i)
     {
         if (nucleationBoxFlag_)
@@ -758,46 +759,6 @@ void Foam::phaseChangeReaction::nuSiteCal
                 }
             }
         }
-        
-        //label poss = rand() % 1000000000000 + 1;
-        //const labelListList& cellFaces = mesh_.cellFaces()[wallList[i]];
-
-        //Mark out cells next to wall BC
-        //wallMarkerRef[wallList[i]] = 1.0;
-
-        //const cell& faces = mesh_.cells()[wallList[i]];
-
-        //scalar faceArea = mesh_.magSf()[wallList[i]];
-        //Info << "Face ID: " << faces << endl;
-        //forAll(faces, faceI)
-        //{
-        //    //Info << faceI << ": " << mesh_.magSf()[faces[faceI]] << endl;
-        //    if(mesh_.magSf()[faceI]>faceArea)
-        //    {
-        //        faceArea = mesh_.magSf()[faceI];
-        //    }
-        //}
-
-        //Info << faces << endl;
-
-        //Info << mesh_.magSf()[faces[0]] << endl;
-
-        //faceAreaTmpRef[wallList[i]] = faceAreaList[i];
-        //forAll(faces, faceI)
-        //{
-        //    //Info << faceI << ": " << mesh_.magSf()[faces[faceI]] << endl;
-        //    if((mesh_.magSf()[faces[faceI]]>faceAreaTmpRef[wallList[i]]) && (mesh_.magSf()[faces[faceI]] < 2e-12))
-        //    {
-        //        faceAreaTmpRef[wallList[i]] = mesh_.magSf()[faces[faceI]];
-        //    }
-        //}
-        //Pout << faceAreaTmpRef[wallList[i]] << endl;
-
-        //std::random_device rd;  //Will be used to obtain a seed for the random number engine
-        //std::default_random_engine generator(rd());
-        //scalar upperLim = 1.0/(faceAreaTmpRef[wallList[i]]+VSMALL);
-        //std::uniform_int_distribution<long long unsigned> dis(1, static_cast<long long unsigned>(upperLim));
-        //scalar randNum = dis(generator);
 
         if(debug_)
         {
@@ -808,23 +769,66 @@ void Foam::phaseChangeReaction::nuSiteCal
             Info<< "Computational time: " << mesh_.time().value() << endl;
         }
 
-        //if((nuRate.ref()[wallList[i]])>randNum)
-        //{
-        //    nuSitePerStepRef[wallList[i]] = 1.0;
-        //    nuSite[wallList[i]] = 1.0;
-        //    Cmask_[wallList[i]] = 1.0;
-        //    if(alpha_[wallList[i]] > 0.5)
-        //    {
-        //        //nuTotal_.value() += 1.0;
-        //        Info<< "New nucleation site found: " << nuRate.ref()[wallList[i]] << " > " << randNum << endl;
-        //    }
-        //}
-        // mark cells for check, remove in running code
-        // nuSite[wallList[i]] = 1.0;
+    }
 
-        // calculate the available surface area
-        //totSufArea.value() += faceArea*alpha_[wallList[i]];
-        //nuRateAccum.value() += nuRate.ref()[wallList[i]]*faceArea*alpha_[wallList[i]];
+    // iterate through all solvent fluid cells to generate homogeneous nucleation
+    forAll(mesh_.C(), cellI)
+    {
+        if (nucleationBoxFlag_)
+        {
+            vector pos = mesh_.C()[cellI];
+            // Nucleation restriction using a box
+            if(cellInsideTheBox(pos))
+            {
+                // volume based?
+
+
+                // Generate random number using uniform_int_distribution
+                std::random_device rdHG;  //Will be used to obtain a seed for the random number engine
+                std::default_random_engine generator(rdHG());
+                scalar upperLim = 1.0;
+                std::uniform_int_distribution<long long unsigned> dis(1, static_cast<long long unsigned>(upperLim));
+                scalar randNum = dis(generator);
+
+                // Generate nucleation site basing on nucleation rate and random number
+                if((nuRate.ref()[cellI])>randNum)
+                {
+                    nuSitePerStepRef[wallList[i]] = 1.0;
+                    nuSite[wallList[i]] = 1.0;
+                    Cmask_[wallList[i]] = 1.0;
+                    if(alpha_[wallList[i]] > 0.5)
+                    {
+                        //nuTotal_.value() += 1.0;
+                        Info<< "New nucleation site found: " << nuRate.ref()[wallList[i]] << " > " << randNum << endl;
+                    }
+                }
+            }
+        }
+        else
+        {
+            const cell& faces = mesh_.cells()[wallList[i]];
+            faceAreaTmpRef[wallList[i]] = faceAreaList[i];
+
+            // Generate random number using uniform_int_distribution
+            std::random_device rd;  //Will be used to obtain a seed for the random number engine
+            std::default_random_engine generator(rd());
+            scalar upperLim = 1.0/(faceAreaTmpRef[wallList[i]]+VSMALL);
+            std::uniform_int_distribution<long long unsigned> dis(1, static_cast<long long unsigned>(upperLim));
+            scalar randNum = dis(generator);
+
+            // Generate nucleation site basing on nucleation rate and random number
+            if((nuRate.ref()[wallList[i]])>randNum)
+            {
+                nuSitePerStepRef[wallList[i]] = 1.0;
+                nuSite[wallList[i]] = 1.0;
+                Cmask_[wallList[i]] = 1.0;
+                if(alpha_[wallList[i]] > 0.5)
+                {
+                    //nuTotal_.value() += 1.0;
+                    Info<< "New nucleation site found: " << nuRate.ref()[wallList[i]] << " > " << randNum << endl;
+                }
+            }
+        }
     }
 
     Info<< "Max/Min cell surface Area(m2): " << max(faceAreaTmpRef).value() << ", " << min(faceAreaTmpRef).value()<< endl;
@@ -867,6 +871,8 @@ Foam::tmp<Foam::volScalarField>
 Foam::phaseChangeReaction::CtoSI
 ()
 {
+    // convert concentration mol/m3 to saturation index for nucleation calculation
+
     tmp<volScalarField> SItmp 
     (
         new volScalarField

@@ -1,5 +1,4 @@
-if (false)
-//if (nAlphaSubCycles > 1)
+if (nAlphaSubCycles > 1)
 {
     Info<< "Alpha sub-cycles runnig" << endl;
     dimensionedScalar totalDeltaT = runTime.deltaT();

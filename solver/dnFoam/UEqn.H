@@ -11,7 +11,7 @@
 
     UEqn.relax();
 
-    phaseChange.addInterfacePorosity(UEqn);
+    // phaseChange.addInterfacePorosity(UEqn);
 
     fvOptions.constrain(UEqn);
 
