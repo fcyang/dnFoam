@@ -793,21 +793,20 @@ void Foam::phaseChangeReaction::nuSiteCal
                 // Generate nucleation site basing on nucleation rate and random number
                 if((nuRate.ref()[cellI])>randNum)
                 {
-                    nuSitePerStepRef[wallList[i]] = 1.0;
-                    nuSite[wallList[i]] = 1.0;
-                    Cmask_[wallList[i]] = 1.0;
-                    if(alpha_[wallList[i]] > 0.5)
+                    nuSitePerStepRef[cellI] = 1.0;
+                    nuSite[cellI] = 1.0;
+                    Cmask_[cellI] = 1.0;
+                    if(alpha_[cellI] > 0.5)
                     {
                         //nuTotal_.value() += 1.0;
-                        Info<< "New nucleation site found: " << nuRate.ref()[wallList[i]] << " > " << randNum << endl;
+                        Info<< "New nucleation site found: " << nuRate.ref()[cellI] << " > " << randNum << endl;
                     }
                 }
             }
         }
         else
         {
-            const cell& faces = mesh_.cells()[wallList[i]];
-            faceAreaTmpRef[wallList[i]] = faceAreaList[i];
+            // volume based?
 
             // Generate random number using uniform_int_distribution
             std::random_device rd;  //Will be used to obtain a seed for the random number engine
@@ -817,15 +816,15 @@ void Foam::phaseChangeReaction::nuSiteCal
             scalar randNum = dis(generator);
 
             // Generate nucleation site basing on nucleation rate and random number
-            if((nuRate.ref()[wallList[i]])>randNum)
+            if((nuRate.ref()[cellI])>randNum)
             {
-                nuSitePerStepRef[wallList[i]] = 1.0;
-                nuSite[wallList[i]] = 1.0;
-                Cmask_[wallList[i]] = 1.0;
-                if(alpha_[wallList[i]] > 0.5)
+                nuSitePerStepRef[cellI] = 1.0;
+                nuSite[cellI] = 1.0;
+                Cmask_[cellI] = 1.0;
+                if(alpha_[cellI] > 0.5)
                 {
                     //nuTotal_.value() += 1.0;
-                    Info<< "New nucleation site found: " << nuRate.ref()[wallList[i]] << " > " << randNum << endl;
+                    Info<< "New nucleation site found: " << nuRate.ref()[cellI] << " > " << randNum << endl;
                 }
             }
         }
